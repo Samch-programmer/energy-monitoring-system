@@ -1,0 +1,12 @@
+body{font-family: Inter, Arial, sans-serif; margin:0; background:#f7f9fb; color:#222}
+header{background:#0b5ed7;color:#fff;padding:20px}
+header h1{margin:0;font-size:20px}
+main{padding:20px;max-width:1100px;margin:0 auto}
+.controls{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.card{background:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06);margin-bottom:16px}
+.charts{display:grid;grid-template-columns:1fr;gap:14px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:13px}
+#alertsList{list-style:none;padding:0;margin:0}
+#alertsList li{padding:8px;border-bottom:1px solid #eee}
+footer{padding:10px;text-align:center;color:#666}

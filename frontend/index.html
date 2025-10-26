@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Energy Monitoring — Industrial Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #eee; }
+    .alert { color: red; font-weight: bold; }
+    #powerChart { background: white; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Energy Monitoring — Industrial Dashboard</h1>
+  <h2>Latest Readings</h2>
+
+  <table id="readingsTable">
+    <thead>
+      <tr>
+        <th>Machine</th>
+        <th>Voltage (V)</th>
+        <th>Current (A)</th>
+        <th>Power (W)</th>
+        <th>kWh</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Power Graph</h2>
+  <canvas id="powerChart" width="800" height="300"></canvas>
+
+  <h2>Alerts</h2>
+  <ul id="alertsList"></ul>
+
+  <script>
+    // Fetch latest readings and populate table
+    function loadReadings() {
+      fetch('/api/readings/latest')
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector('#readingsTable tbody');
+          tbody.innerHTML = '';
+          data.forEach(r => {
+            const row = `<tr>
+              <td>${r.name}</td>
+              <td>${r.voltage.toFixed(2)}</td>
+              <td>${r.current.toFixed(2)}</td>
+              <td>${r.power.toFixed(2)}</td>
+              <td>${r.energy_kwh.toFixed(4)}</td>
+              <td>${new Date(r.timestamp).toLocaleString()}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+          });
+
+          // Update chart
+          const labels = data.map(r => new Date(r.timestamp).toLocaleTimeString());
+          const powers = data.map(r => r.power);
+          const ctx = document.getElementById('powerChart').getContext('2d');
+
+          if (window.powerChartInstance) {
+            window.powerChartInstance.data.labels = labels;
+            window.powerChartInstance.data.datasets[0].data = powers;
+            window.powerChartInstance.update();
+          } else {
+            window.powerChartInstance = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Power (W)',
+                  data: powers,
+                  borderColor: 'blue',
+                  fill: false,
+                  tension: 0.2
+                }]
+              },
+              options: {
+                scales: {
+                  x: { title: { display: true, text: 'Time' } },
+                  y: { title: { display: true, text: 'Power (W)' } }
+                }
+              }
+            });
+          }
+        });
+    }
+
+    // Fetch alerts
+    function loadAlerts() {
+      fetch('/api/alerts')
+        .then(res => res.json())
+        .then(data => {
+          const ul = document.getElementById('alertsList');
+          ul.innerHTML = '';
+          data.forEach(a => {
+            const li = `<li class="alert">[${new Date(a.alert_time).toLocaleString()}] Machine ${a.machine_id}: ${a.message}</li>`;
+            ul.innerHTML += li;
+          });
+        });
+    }
+
+    // Initial load
+    loadReadings();
+    loadAlerts();
+
+    // Refresh every 5 seconds
+    setInterval(loadReadings, 5000);
+    setInterval(loadAlerts, 5000);
+  </script>
+
+</body>
+</html>
